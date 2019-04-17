@@ -9,4 +9,5 @@ cmake -G"MinGW Makefiles" ..\
 make
 
 .\tof -h #查看帮助信息
+![image](https://https://github.com/zhaopei8948/timing-operation-file/master/images/tof-help.png)
 ```
