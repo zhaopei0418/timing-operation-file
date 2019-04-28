@@ -1,19 +1,28 @@
 #ifndef PAROPT_H
 #define PAROPT_H
 
-#define CHAR_BUFF_LENGTH 100
+#include <stdint.h>
+
+#define CHAR_BUFF_LENGTH 200
+
+typedef enum
+{
+    B_FALSE, B_TRUE
+} BOOL_TYPE;
+
+typedef enum
+{
+    OP_MOVE, OP_DELETE
+} OPERATOR_TYPE;
 
 extern char srcdir[CHAR_BUFF_LENGTH];
 extern char filepattern[CHAR_BUFF_LENGTH];
-extern char o;
-extern char searchsubdirectories[CHAR_BUFF_LENGTH];
+extern OPERATOR_TYPE operation;
+extern BOOL_TYPE searchsubdirectories;
 extern char dstdir[CHAR_BUFF_LENGTH];
-extern int delaytime;
+extern uint32_t delaytime;
 
+/* public function declarations*/
 int parseOption(int argc, char **argv);
-
-void help(const char *restrict cmdName);
-
-static void calculationDelayTime(const char *delayTimeStr);
 
 #endif

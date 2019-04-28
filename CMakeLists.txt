@@ -9,6 +9,8 @@ aux_source_directory(. SOURCES)
 # 添加tool子目录
 add_subdirectory(paropt)
 add_subdirectory(log)
+add_subdirectory(tool)
+add_subdirectory(regex)
 
 # 添加头文件信息目录
 include_directories(${PROJECT_SOURCE_DIR}/include
@@ -20,4 +22,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME}
   paropt
   log
+  tool
+  regex
 )

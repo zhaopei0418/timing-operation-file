@@ -1,5 +1,10 @@
 # C11标准＋WINDOOWS API
 
+# 使用的第三方库
+
+log.c https://github.com/rxi/log.c
+tiny-regex-c https://github.com/kokke/tiny-regex-c
+
 ## 源码编译
 ```
 git clone https://github.com/zhaopei8948/timing-operation-file

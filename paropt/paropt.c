@@ -2,26 +2,32 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <getopt.h>
 #include "paropt.h"
 #include "../log/log.h"
 
+
 char srcdir[CHAR_BUFF_LENGTH];
 char filepattern[CHAR_BUFF_LENGTH];
-char o;
-char searchsubdirectories[CHAR_BUFF_LENGTH];
+OPERATOR_TYPE operation;
+BOOL_TYPE searchsubdirectories;
 char dstdir[CHAR_BUFF_LENGTH];
-int delaytime;
+uint32_t delaytime;
 
-void help(const char *restrict cmdName)
+/* private function declarations */
+static void help(const char *restrict cmdName);
+static void calculationDelayTime(const char *delayTimeStr);
+
+static void help(const char *restrict cmdName)
 {
     printf("Usage: %s [OPTION]\n\n", cmdName);
     printf("    -s --srcdir <value>                 source dir\n");
     printf("    -f --filepattern <pattern>          match file pattern\n");
     printf("    -o --operation <value>              how to deal with files, m:move, d:delte\n");
-    printf("    -S --searchsubdirectories <value>   whether to search subdirectories, 1: yes, 0: no\n");
+    printf("    -S --searchsubdirectories <value>   whether to search subdirectories, y: yes, n: no\n");
     printf("    -d --dstdir <value>                 dstination dir\n");
-    printf("    -t --delaytime <time>               time str descrption 1s,1m,1h,1d...\n");
+    printf("    -t --delaytime <time>               time str descrption 1S,1s,1m,1h,1d...\n");
     printf("    -h --help                           help\n");
 }
 
@@ -37,8 +43,19 @@ static void calculationDelayTime(const char *delayTimeStr)
     time[length - 1] = '\0';
 
     switch (timeUnit) {
+    case 'S':
+        delaytime = atoi(time);
     case 's':
         delaytime = atoi(time) * 1000;
+        break;
+    case 'm':
+        delaytime = atoi(time) * 60 * 1000;
+        break;
+    case 'h':
+        delaytime = atoi(time) * 60 * 60 * 1000;
+        break;
+    case 'd':
+        delaytime = atoi(time) * 24 * 60 * 60 * 1000;
         break;
     default:
         log_error("delaytime format error");
@@ -70,7 +87,7 @@ int parseOption(int argc, char **argv)
         int c;
 
         /*注意这里的冒号，有冒号就需要加参数值，没有冒号就不用加参数值*/
-        c = getopt_long(argc, argv, "i:p:f:t:h",long_options, &option_index);
+        c = getopt_long(argc, argv, "s:f:o:S:d:t:h",long_options, &option_index);
         if (c == -1)
             break;
 
@@ -82,10 +99,24 @@ int parseOption(int argc, char **argv)
             strncpy(filepattern, optarg, CHAR_BUFF_LENGTH);
             break;
         case 'o':
-            o = optarg[0];
+            if ('m' == optarg[0] || 'M' == optarg[0])
+                operation = OP_MOVE;
+            else if ('d' == optarg[0] || 'D' == optarg[0])
+                operation = OP_DELETE;
+            else {
+                log_error("operation incorrect, the optional values are m:move, d:delete.");
+                return -1;
+            }
             break;
         case 'S':
-            strncpy(searchsubdirectories, optarg, CHAR_BUFF_LENGTH);
+            if ('n' == optarg[0] || 'N' == optarg[0])
+                searchsubdirectories = B_FALSE;
+            else if ('y' == optarg[0] || 'Y' == optarg[0])
+                searchsubdirectories = B_TRUE;
+            else {
+                log_error("searchsubdirectories incorrect, the optional values are y:yes, n:no.");
+                return -1;
+            }
             break;
         case 'd':
             strncpy(dstdir, optarg, CHAR_BUFF_LENGTH);
@@ -101,6 +132,5 @@ int parseOption(int argc, char **argv)
         }
     }
 
-    log_info("resut is: %d", result);
     return result;
 }
