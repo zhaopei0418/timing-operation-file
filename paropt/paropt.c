@@ -15,12 +15,15 @@ BOOL_TYPE searchsubdirectories;
 char dstdir[CHAR_BUFF_LENGTH];
 uint32_t delaytime;
 
+static const char *VERSION_NO = "1.0";
+
 /* private function declarations */
 static void help(const char *restrict cmdName);
 static void calculationDelayTime(const char *delayTimeStr);
 
 static void help(const char *restrict cmdName)
 {
+    printf("tof %s\n", VERSION_NO);
     printf("Usage: %s [OPTION]\n\n", cmdName);
     printf("    -s --srcdir <value>                 source dir\n");
     printf("    -f --filepattern <pattern>          match file pattern\n");
