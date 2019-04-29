@@ -48,6 +48,7 @@ static void calculationDelayTime(const char *delayTimeStr)
     switch (timeUnit) {
     case 'S':
         delaytime = atoi(time);
+        break;
     case 's':
         delaytime = atoi(time) * 1000;
         break;

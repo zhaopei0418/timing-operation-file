@@ -25,6 +25,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#ifndef _WIN32
+#include <sys/time.h>
+#endif
 
 #include "log.h"
 
@@ -98,6 +101,10 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
   /* Get current time */
   time_t t = time(NULL);
   struct tm *lt = localtime(&t);
+#ifndef _WIN32
+  struct timeval tn;
+  gettimeofday(&tn, NULL);
+#endif
 
   /* Log to stderr */
   if (!L.quiet) {
@@ -109,7 +116,11 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
       stderr, "%s %s%-5s\x1b[0m \x1b[90m%s:%d:\x1b[0m ",
       buf, level_colors[level], level_names[level], file, line);
 #else
+#ifndef _WIN32
+    fprintf(stderr, "%s.%d %-5s %s:%d: ", buf, tn.tv_usec / 1000, level_names[level], file, line);
+#else
     fprintf(stderr, "%s %-5s %s:%d: ", buf, level_names[level], file, line);
+#endif
 #endif
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
@@ -123,7 +134,11 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     va_list args;
     char buf[32];
     buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
+#ifndef _WIN32
+    fprintf(L.fp, "%s.%d %-5s %s:%d: ", buf, tn.tv_usec / 1000, level_names[level], file, line);
+#else
     fprintf(L.fp, "%s %-5s %s:%d: ", buf, level_names[level], file, line);
+#endif
     va_start(args, fmt);
     vfprintf(L.fp, fmt, args);
     va_end(args);
