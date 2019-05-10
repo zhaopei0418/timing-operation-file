@@ -11,8 +11,30 @@
 #include "tool.h"
 #include "../log/log.h"
 
+#ifdef _WIN32
+struct HandleTask {
+    void (* handleFile)(const char *path, const char *fileName, const char *dstdir, OPERATOR_TYPE oper);
+    const char *path;
+    char fileName[MAX_PATH_LENGTH];
+    const char *dstdir;
+    OPERATOR_TYPE oper;
+};
+#endif
+
 
 static void handleFile(const char *path, const char *fileName, const char *dstdir, OPERATOR_TYPE oper);
+
+#ifdef _WIN32
+VOID CALLBACK threadFunc(PTP_CALLBACK_INSTANCE Instance, PVOID Context)
+{
+    if (NULL != Context) {
+        struct HandleTask *handleTask = (struct HandleTask *) Context;
+        log_info("thread execute ...%d handleTask: %p fileName: %s", GetCurrentThreadId(), handleTask, handleTask->fileName);
+        handleTask->handleFile(handleTask->path, handleTask->fileName, handleTask->dstdir, handleTask->oper);
+        free(handleTask);
+    }
+}
+#endif
 
 
 void handleMatchFiles(const char *dir, const char *dstdir, BOOL_TYPE searchSubdirectories, const char *pattern, OPERATOR_TYPE oper,
@@ -28,6 +50,7 @@ void handleMatchFiles(const char *dir, const char *dstdir, BOOL_TYPE searchSubdi
     WIN32_FIND_DATA findData;
     re_t filePattern;
     int match_idx = -1;
+    struct HandleTask *handleTask;
 
     strcpy(dirNew, dir);
     strcat(dirNew, "\\*.*");
@@ -54,8 +77,16 @@ void handleMatchFiles(const char *dir, const char *dstdir, BOOL_TYPE searchSubdi
                 if ((match_idx = re_matchp(filePattern, findData.cFileName)) != -1) {
                     if (handleCallBack != NULL)
                         handleCallBack(dir, findData.cFileName, dstdir, oper);
-                    else
-                        handleFile(dir, findData.cFileName, dstdir, oper);
+                    else {
+                        handleTask = malloc(sizeof(struct HandleTask));
+                        handleTask->handleFile = handleFile;
+                        handleTask->path = dir;
+                        strncpy(handleTask->fileName, findData.cFileName, MAX_PATH_LENGTH);
+                        handleTask->dstdir = dstdir;
+                        handleTask->oper = oper;
+                        if (!TrySubmitThreadpoolCallback(threadFunc, handleTask, NULL))
+                            handleFile(dir, findData.cFileName, dstdir, oper);
+                    }
                 } else {
                     log_info("%s not match pattern %s", findData.cFileName, pattern);
                 }
