@@ -8,7 +8,7 @@ elseif (UNIX)
     message(STATUS "now is UNIX-like OS's.")
 endif()
 # 添加c11支持
-add_compile_options(-std=c11)
+#add_compile_options(-std=c11)
 # 项目名称
 project(tof)
 # 查找当关目录下所有源文件
